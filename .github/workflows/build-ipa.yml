@@ -44,6 +44,37 @@ jobs:
             exit 1
           fi
 
+      - name: Embed entitlements (ad-hoc resign)
+        run: |
+          mkdir -p build/ents
+          cat > build/ents/app.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>application-identifier</key><string>B5CKS3GTRA.com.keepassium.ios</string>
+            <key>com.apple.developer.authentication-services.autofill-credential-provider</key><true/>
+            <key>com.apple.developer.default-data-protection</key><string>NSFileProtectionComplete</string>
+            <key>com.apple.security.application-groups</key><array><string>group.com.keepassium</string></array>
+            <key>keychain-access-groups</key><array><string>B5CKS3GTRA.com.keepassium.SharedItems</string></array>
+          </dict></plist>
+          EOF
+          cat > build/ents/appex.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>application-identifier</key><string>B5CKS3GTRA.com.keepassium.ios.KeePassium-AutoFill</string>
+            <key>com.apple.developer.authentication-services.autofill-credential-provider</key><true/>
+            <key>com.apple.security.application-groups</key><array><string>group.com.keepassium</string></array>
+            <key>keychain-access-groups</key><array><string>B5CKS3GTRA.com.keepassium.SharedItems</string></array>
+          </dict></plist>
+          EOF
+          codesign --force --sign - --entitlements build/ents/app.plist \
+            "build/KeePassium.xcarchive/Products/Applications/KeePassium.app/KeePassium"
+          codesign --force --sign - --entitlements build/ents/appex.plist \
+            "build/KeePassium.xcarchive/Products/Applications/KeePassium.app/PlugIns/KeePassium AutoFill.appex/KeePassium AutoFill"
+          echo "verifying embedded entitlements:"
+          codesign -d --entitlements :- "build/KeePassium.xcarchive/Products/Applications/KeePassium.app/PlugIns/KeePassium AutoFill.appex/KeePassium AutoFill" | grep -i autofill
+
       - name: Assemble Payload and zip IPA
         run: |
           mkdir -p build/Payload
