@@ -82,10 +82,17 @@ public class FileKeeper {
 
         print("\nDoc dir: \(docDirURL)\n")
 
-        guard let sharedContainerURL = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: AppGroup.id) else { fatalError() }
+        var backupBaseURL: URL
+        if let sharedContainerURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: AppGroup.id)
+        {
+            backupBaseURL = sharedContainerURL
+        } else {
+            Diag.warning("App group container unavailable, falling back to app-local storage")
+            backupBaseURL = docDirURL
+        }
 
-        let _backupDirURL = sharedContainerURL.appendingPathComponent(
+        let _backupDirURL = backupBaseURL.appendingPathComponent(
             FileKeeper.backupDirectoryName,
             isDirectory: true)
         do {

@@ -10,9 +10,16 @@ import Foundation
 
 public final class PassphraseWordlistManager {
     private static var wordlistsFolder: URL {
-        guard let sharedContainerURL = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: AppGroup.id) else { fatalError() }
-        return sharedContainerURL.appendingPathComponent("wordlists")
+        if let sharedContainerURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: AppGroup.id)
+        {
+            return sharedContainerURL.appendingPathComponent("wordlists")
+        }
+        // Personal build: fall back to app-local storage when the app group
+        // container is not available (e.g. sideloaded free-provisioned build).
+        let cachesURL = FileManager.default.urls(
+            for: .cachesDirectory, in: .userDomainMask).first ?? URL(fileURLWithPath: NSTemporaryDirectory())
+        return cachesURL.appendingPathComponent("wordlists")
     }
 
     public static let customWordlistExtension = "txt"

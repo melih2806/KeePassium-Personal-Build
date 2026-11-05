@@ -10,10 +10,9 @@ import Foundation
 
 public extension UserDefaults {
     static var appGroupShared: UserDefaults {
-        guard let instance = UserDefaults(suiteName: AppGroup.id) else {
-            fatalError("Failed to create app group user defaults.")
-        }
-        return instance
+        // Personal build: fall back to standard defaults when the app group
+        // container is not available (e.g. sideloaded free-provisioned build).
+        return UserDefaults(suiteName: AppGroup.id) ?? .standard
     }
 
     static func eraseAppGroupShared() {
