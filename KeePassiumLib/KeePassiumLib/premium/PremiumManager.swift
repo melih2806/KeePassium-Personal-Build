@@ -232,38 +232,9 @@ public class PremiumManager: NSObject {
     }
 
     private func updateStatus(allowSubscriptionExpiration: Bool) {
-        if !allowSubscriptionExpiration && status == .subscribed {
-            return
-        }
-
+        // Personal build: premium is unlocked by default.
         let previousStatus = status
-        var wasStatusSet = false
-        if let expiryDate = purchaseHistory.latestPremiumExpiryDate {
-            if expiryDate.timeIntervalSinceNow > 0 {
-                status = .subscribed
-                wasStatusSet = true
-            } else if Date.now.timeIntervalSince(expiryDate) < lapsePeriod {
-                status = .lapsed
-                wasStatusSet = true
-            } else if purchaseHistory.premiumFallbackDate != nil {
-                status = .fallback
-                wasStatusSet = true
-            }
-        } else {
-            if gracePeriodRemaining > 0 {
-                status = .initialGracePeriod
-                wasStatusSet = true
-            }
-        }
-        if !wasStatusSet { 
-            let appUsage = usageMonitor.getAppUsageDuration(.perMonth)
-            if appUsage < heavyUseThreshold {
-                status = .freeLightUse
-            } else {
-                status = .freeHeavyUse
-            }
-        }
-
+        status = .subscribed
         if status != previousStatus {
             Diag.info("Premium status has changed [was: \(previousStatus), now: \(status)]")
             notifyStatusChanged()
@@ -301,16 +272,14 @@ public class PremiumManager: NSObject {
     }
 
     public func isPremiumSupportAvailable() -> Bool {
-        guard let premiumSupportExpiryDate = purchaseHistory.premiumSupportExpiryDate else {
-            return false
-        }
-        let timeLeft = premiumSupportExpiryDate.timeIntervalSinceNow
-        return timeLeft > 0
+        // Personal build premium is enabled by default.
+        return true
     }
 
 
     public func isAvailable(feature: PremiumFeature) -> Bool {
-        return feature.isAvailable(in: status, fallbackDate: fallbackDate)
+        // Personal build: all premium features enabled.
+        return true
     }
 
 
